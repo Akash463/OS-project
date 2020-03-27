@@ -36,233 +36,181 @@ we have total 120 minutes window
 
 
 
-
 #include<stdio.h>
 #include<string.h>
-//defining structure 
-struct Process{ 
- char process_name[25];
- int arrival_time,burst_time,completion_time,remaining_time_for_completion;                                                                          
+struct information{
+	int processid;
+	int arrivaltime;
+	int bursttime;
+	int completiontime;
+	int remainingtime;
 };
-struct Process Struct1;// global declaration of variable of process data type
+struct information facultyqueue[100];//f
+struct information studentqueue[100];//s
+struct information readyqueue[100];//m
+int n, fc=0,sc=0, readycount=0;
+int timequantum;
 
-
-//as we need two seperate request queues so 1.for teachers
-void queue_for_faculties(int no_of_process){
-	int count,arrival_time,burst_time,time_quantum;
-	struct Process faculty_process[no_of_process];//making local variables of count given in no_of_process of data type process
-	for(count=0;count<no_of_process;count++){
-		printf("Enter the details of Process[%d]",count+1);
-		puts("");
-		
-		
-	}
-	
-	
-}
-
-
-struct information student_queue[100],faculty_queue[100],ready_queue[100],running[100];//m is ready
-//void enqueue(int a[],int rear);
-//void dequeue(int a[],int front);
-int facultycount=0;//fc
-int studentcount=0;//sc
-int readypointer=0;//mc
-
-//int time =0;
-void worker(){
-	int i;
-	int jobs=0;
-	int jobe=0;
-	int tracker=0;
-	printf("\n worker");
-	while(time<120){
-		printf("\nworker at time : %d",time);
-		if(ready_queue[tracker].arrivaltime==time){
-			jobe++;
-			
-		}
-		for(i=0;i<=jobe;i++){
-			if(ready_queue[i].bbd>2){
-				ready_queue[i].bbd-=2;
-				time+=2;
-				
-				
+void roundrobin_implementation(){
+	int time= readyqueue[0].arrivaltime, mark=0, cc=0, i, rc;
+	while(time!=120 && cc!=readycount){
+		for(i=0; i<=mark; i++){
+			if(readyqueue[i].remainingtime > timequantum){
+				time=time + timequantum;
+				readyqueue[i].remainingtime -= timequantum;
 			}
-			else{
-				time+=ready_queue[i].bbd;
-				ready_queue[i].bbd=0;
-				ready_queue[i].endtime=time;
-				jobs++;
-				
+			else if(readyqueue[i].remainingtime <=timequantum && readyqueue[i].remainingtime !=0){
+				time += readyqueue[i].remainingtime;
+				readyqueue[i].remainingtime =0;
+				readyqueue[i].completiontime = time;
+				cc++;
+			}
+			else;
+		}
+		int start = mark+1;
+		for(rc= start; rc<readycount; rc++){
+			if(readyqueue[rc].arrivaltime <= time){
+				mark++;
 			}
 		}
-	}
+	}	
 }
 
-//void getstats(int findex,int sindex);//faculty f ,student s
-//void round_robin();//scheduler
-//int time_quantum=2;
-//void round_robin(){
-//	int faculty_pointer=0,student_pointer=0;
-//	int total_time=120,i;//total time=time
-//	for(i=0;i<=total_time;i++){
-//		if(student_queue[student_pointer].arrivaltime==i || faculty_queue[faculty_pointer]==i){
-//			if(faculty_queue[faculty_pointer]==i){
-//				
-//			}
-//			else{
-//				
-//			}
-//		else{
-//			continue;
-//		}
-//		}
-//	}
+////
 
-	
-//}
-void ready(){
-	int i;
-	int s=0,f=0;
-	int r=0;
-	for(i=0;i<=120;i++){//aswe have 120 min
-		if(i==student_queue[s].arrivaltime && i==faculty[f].arrivaltime){
-			ready_queue[r]=faculty_queue[f];
-			r++;
-			f++;
-			while(i==faculty_queue[f].arrivaltime){
-				ready_queue[r]=faculty_queue[f];
-				r++;
-				f++;
-				
+///
+void putting_data_of_both_queues(){
+	int isc=0, ifc= 0, min, flag;
+	if( fc!=0  && sc!=0){
+		while(isc<sc && ifc<fc){
+			if(facultyqueue[ifc].arrivaltime == studentqueue[isc].arrivaltime){
+				readyqueue[readycount] = facultyqueue[ifc];
+				readycount++;
+				ifc++;
+				readyqueue[readycount]= studentqueue[isc];
+				readycount++;
+				isc++;
 			}
-			ready_queue[r]=student_queue[s];
-			r++;
-			s++;
-			while(i==student_queue[s].arrivaltime){
-				ready_queue[r]=student_queue[s];
-				r++;
-				s++;
-				
+			else if(facultyqueue[ifc].arrivaltime < studentqueue[isc].arrivaltime){
+				readyqueue[readycount]= facultyqueue[ifc];
+				readycount++;
+				ifc++;
 			}
-			
-			
-			
+			else if(facultyqueue[ifc].arrivaltime > studentqueue[isc].arrivaltime){
+				readyqueue[readycount]= studentqueue[isc];
+				readycount++;
+				isc++;
+			}
+			else;
 		}
-		else if(i==student_queue[s].arrivaltime){
-				ready_queue[r]=student_queue[s];
-				r++;
-				s++;
-				while(i==student_queue[s].arrivaltime){
-				ready_queue[r]=student_queue[s];
-				r++;
-				s++;
+		if(readycount != (fc+sc)){
+			if(fc!=ifc){
+				while(ifc!=fc){
+					readyqueue[readycount]= facultyqueue[ifc];
+					readycount++;
+					ifc++;
+				}
+			}
+			else if(sc!=isc){
+				while(isc!=sc){
+					readyqueue[readycount]= studentqueue[isc];
+					readycount++;
+					isc++;
+				}
+			}
 		}
-		else if(i==faculty_queue[f].arrivaltime){
-				ready_queue[r]=faculty_queue[f];
-				r++;
-				s++;
-				while(i==faculty_queue[f].arrivaltime){
-				ready_queue[r]=faculty_queue[f];
-				r++;
-				f++;
-		}
-		else continue;
-		
-		
 	}
-	readypointer=r;
+	else if(fc==0){
+		while(isc!=sc){
+			readyqueue[readycount]= studentqueue[isc];
+			readycount++;
+			isc++;
+		}
+	}
+	else if(sc==0){
+		while(ifc!=fc){
+		readyqueue[readycount]= facultyqueue[ifc];
+			readycount++;
+			ifc++;
+		}
+	}
+	else {
+		printf("\n No valid Jobs available\n");
+	}}
+void allinputhere(){
 	
+	int querytype,  i, t;
+	printf("Enter total no of queries: "); scanf("%d", &n);
+	if(n==0) { printf("\n No queries has be accepeted\n"); }
+	else{
+		printf("\nEnter timequantum for each Process: "); scanf("%d", &timequantum);
+		printf("\nEnter 1 for faculty and 2 for student\n");
+		for(i=0; i<n; i++){
+			printf("\n:Press 1(faculty) or 2(student) "); scanf("%d", &querytype);
+			if(querytype==1){
+				printf("Query Id: "); scanf("%d", &facultyqueue[fc].processid);
+				printf("Arrival Time: "); scanf("%d", &t);
+				if(t<1000 || t>1200){
+					printf("\n Entered wrong slot time ");
+					allinputhere();
+				}
+				else{facultyqueue[fc].arrivaltime= t-1000;}
+				printf("Burst time: "); scanf("%d", &facultyqueue[fc].bursttime);	 facultyqueue[fc].remainingtime= facultyqueue[fc].bursttime; 
+				fc++;
+			} else{
+				printf("Query Id: "); scanf("%d", &studentqueue[sc].processid);
+				printf("Arrival Time: "); scanf("%d", &t); 
+				if(t<1000 || t>1200){
+					printf("\nEntered wrong slot time\n");
+					allinputhere();
+				}
+				else {studentqueue[sc].arrivaltime= t-1000; }
+				printf("Burst time: "); scanf("%d", &studentqueue[sc].bursttime);	 studentqueue[sc].remainingtime= studentqueue[sc].bursttime;
+				sc++;
+			}
+		}
+	}}
+	void printinginformation(){
 	
-}
-void print_info(){
-	int i=0,j=0;
-	printf("faculty \n");
-	for(i=0;i<facultycount;i++){
-		printf("id: %d,attime: %d,bttime: %d \n",faculty_queue[i].processid,faculty_queue[i].arrivaltime,faculty_queue[i].bursttime);
-		
-	}
-	printf("student queries:\n");
-	for(i=0;i<studentcount;i++){
-		printf("id: %d,attime: %d,bttime: %d \n",student_queue[i].processid,student_queue[i].arrivaltime,student_queue[i].bursttime);
-		
-	}
-	printf("ready queues:\n");
-	for(i=0;i<readypointer;i++){
-		printf("id: %d,attime: %d,bttime: %d \n",ready_queue[i].processid,ready_queue[i].arrivaltime,ready_queue[i].bursttime);
-		
-	}
-}
-void summary(int findex,int sindex);
+	int i=0, total=0, sum=0; 
+	double avg;
+	printf("\nHere is the summary....\n");
+	printf("\nQuery ID\tArrival Time\tRessolving Time\tCompletion Time\tTurn Around Time\tWaiting Time");
+	for(i; i<readycount; i++){
+		printf("\n%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t\t%d",
+		readyqueue[i].processid, (readyqueue[i].arrivaltime+1000), readyqueue[i].bursttime, (readyqueue[i].completiontime+1000), (readyqueue[i].completiontime-readyqueue[i].arrivaltime), ((readyqueue[i].completiontime-readyqueue[i].arrivaltime)- readyqueue[i].bursttime));
+		total= readyqueue[i].completiontime;
+		sum+= (readyqueue[i].completiontime-readyqueue[i].arrivaltime);}
+			avg = sum/readycount;
+	printf("\n\nTotal time Spent for all queries: %d", total);
+	printf("\nAverage query time taken is : %f", avg);//lf
+	printf("\nAll queries have been solved");}
 
-	
+
+
+
+
 void main(){
-	int total_no_of_query,type_of_query,i;
-	//struct information student_queue[100],faculty_queue[100];
-	int facultycount=0,studentcount=0;
+	puts("...................................................Good Morning.......................................................\n");
+	puts("Important points are as follows  ------\n");
+	puts("*** Mr.Sharma will be available from 10am to 12 am only and respond to your query shortly.");
+	puts("*** Please enter arrival time of process in format 1000 to 1200  and in bw this slot only otherwise your query will not be handled.");
+	puts("*** Faculty query will be given more preference. So please have patience till your turn comes...");
+	puts("*** Time units are in minutes.\n\n\n");
 	
-	printf("Welcome\n");
-	printf("\nEnter total no of queries: ");
-	scanf("%d",&total_no_of_query);
-	for(i=0;i<total_no_of_query;i++){
-		printf("\nPress 1 for student or 2 for faculty");
-		scanf("%d",&type_of_query);
-		if(type_of_query==1){
-			printf("you selected faculty:\n");
-			printf("queryid:\n");
-			scanf("%d",&faculty_queue[facultycount].processid);
-			printf("Arrival time should be in bw 10am to 12 pm, your format should be of type hhmm");
-			scanf("%d",&faculty_queue[facultycount].arrivaltime);
-			printf("burst time in minutes:");
-			scanf("%d",&faculty_queue[facultycount].bursttime);
-			//faculty_queue[facultycount].completion_time=0;
-			facultycount++;
-			
-			
-		}
-		else{
-			printf("you selected student query:\n");
-			printf("queryid:\n");
-			scanf("%d",&student_queue[studentcount].processid);
-			printf("Arrival time should be in bw 10am to 12 pm, your format should be of type hhmm");
-			scanf("%d",&student_queue[studentcount].arrivaltime);
-			printf("burst time in minutes:");
-			scanf("%d",&student_queue[studentcount].bursttime);
-			//student_queue[studentcount].completion_time=0;
-			studentcount++;
-			
-		}
-		//getstats(facultycount,studentcount);
-		ready();
-		//print_info();
-		//summary(facultycount,studentcount);
-		worker();
-		
-		
-			
-		
-	}
+	/////////////////////////////taking input
+	allinputhere();
+	
+	//combining both queues
+	putting_data_of_both_queues();
+	//implementation of round robin
+	roundrobin_implementation();
+	//summary
+	printinginformation();
+	
+	
 	
 }
-void summary(int findex , int sindex ){
-	int i;
-	printf("\n summary");
-	printf("\nfaculty queries details\n");
-			printf("\n query id \  arrivaltime  \ burst time \n");
-			for(i=0;i<findex;i++){
-				printf("%d / %d / %d",faculty_queue[i].processid,faculty_queue.arrivaltime,faculty_queue.bursttime);
-			}
-}
-//void getstats(int findex,int sindex){
-//			int i;
-//			printf("details for all jobs completed");
-//			printf("\nfaculty queries details\n");
-//			printf("\n query id \  arrivaltime  \ resolving time \n");
-//			for(i=0;i<findex;i++){
-//				printf("%d / %d / %d",faculty_queue[i].processid,faculty_queue.arrivaltime,faculty_queue.bursttime);
-//			}
-//		}
 
 
 
