@@ -135,7 +135,7 @@ void putting_data_of_both_queues(){
 		}
 	}
 	else {
-		printf("\n No valid Jobs available\n");
+		printf("\nPlease select as per instruction...\n");
 	}}
 void allinputhere(){
 	
@@ -151,7 +151,7 @@ void allinputhere(){
 				printf("Query Id: "); scanf("%d", &facultyqueue[fc].processid);
 				printf("Arrival Time: "); scanf("%d", &t);
 				if(t<1000 || t>1200){
-					printf("\n Entered wrong slot time ");
+					printf("\n Entered wrong slot time. Please enter again.");
 					allinputhere();
 				}
 				else{facultyqueue[fc].arrivaltime= t-1000;}
@@ -161,7 +161,7 @@ void allinputhere(){
 				printf("Query Id: "); scanf("%d", &studentqueue[sc].processid);
 				printf("Arrival Time: "); scanf("%d", &t); 
 				if(t<1000 || t>1200){
-					printf("\nEntered wrong slot time\n");
+					printf("\nEntered wrong slot time. Please enter again.\n");
 					allinputhere();
 				}
 				else {studentqueue[sc].arrivaltime= t-1000; }
