@@ -1,190 +1,191 @@
-//Problem Statement
-
-/*
- Sudesh Sharma is a Linux expert who wants to have an online system where he can handle student queries. Since there can be multiple
-  requests at any time he wishes to dedicate a fixed amount of time to every request so that everyone gets a fair share of his time.
-   He will log into the system from 10am to 12am only.  He wants to have separate requests queues for students and faculty. 
-   Implement a strategy for the same. The summary at the end of the session should include the total time he spent on handling queries 
-   and average query time. 
-
-
-*/
-//=======================================================================
-
-//As per the scenerio given in the question the best practice that should bee used here is "Round-Robin Algorithm".(Time sharing system)
-//for avg response time it is the best algorithm 
-/*Important points :----
-1.Criteria : Time Quantum
-2.Mode: Preemptive
-3.Turn Around Time = Completion Time - Arrival Time
-4.Waiting time= TAT - BT(Burst time)
-5.Response Time = Cpu given to process first time - Arrival time
-6.Context switching - save running process and loading the new process (it is so fast that we cannot feel it as ex.music and video simultaneously )
-
-Needs--
-1. 2 Queues -- ready and running
-in ready queue - put according to their arrival time.
-after executing first check which got ready in the meantime and those which got ready put them in ready queue accord to arrival time
-
-//============================================================================//
-Assumptions:
-time alloted for each query let be 3 minutes
-we have total 120 minutes window 
-
-
-*/
-
-
-
 #include<stdio.h>
 #include<string.h>
+#include<stdbool.h>
 struct information{
+
+
+	//int completiontime;
+	int remainingtime;//rbt
+	int turnaroundtime;//+
+	int waitingtime;
 	int processid;
 	int arrivaltime;
 	int bursttime;
-	int completiontime;
-	int remainingtime;
+	
 };
 struct information facultyqueue[100];//f
 struct information studentqueue[100];//s
-struct information readyqueue[100];//m
-int n, fc=0,sc=0, readycount=0;
-int timequantum;
+struct information readyqueue[100];//merger
+int n, fc=0,sc=0, readycount=0;//facultycount,studentcount,no of process
+
+int time;//total time of execution +
+int totalwaiting=0;
+int totalturnaroundtime=0;
 
 void roundrobin_implementation(){
-	int time= readyqueue[0].arrivaltime, mark=0, cc=0, i, rc;
-	while(time!=120 && cc!=readycount){
-		for(i=0; i<=mark; i++){
-			if(readyqueue[i].remainingtime > timequantum){
-				time=time + timequantum;
-				readyqueue[i].remainingtime -= timequantum;
-			}
-			else if(readyqueue[i].remainingtime <=timequantum && readyqueue[i].remainingtime !=0){
-				time += readyqueue[i].remainingtime;
-				readyqueue[i].remainingtime =0;
-				readyqueue[i].completiontime = time;
-				cc++;
-			}
-			else;
-		}
-		int start = mark+1;
-		for(rc= start; rc<readycount; rc++){
-			if(readyqueue[rc].arrivaltime <= time){
-				mark++;
-			}
-		}
-	}	
+int timequantum;
+printf("\nEnter time quantum\n");
+scanf("%d",&timequantum);
+int queriesleft=n;
+
+bool cpustate=0;
+printf("\nOverall Summary of process execution\n");
+for(time=readyqueue[0].arrivaltime,readycount=0;queriesleft!=0;){
+	if(readyqueue[readycount].remainingtime<=timequantum && readyqueue[readycount].remainingtime!=0){
+		time += readyqueue[readycount].remainingtime;
+		readyqueue[readycount].remainingtime=0;
+		cpustate=1;
+		
+      readyqueue[readycount].waitingtime += time-(readyqueue[readycount].arrivaltime+readyqueue[readycount].bursttime);
+      readyqueue[readycount].turnaroundtime += time-(readyqueue[readycount].arrivaltime);
+      totalwaiting += readyqueue[readycount].waitingtime;
+      totalturnaroundtime += readyqueue[readycount].turnaroundtime;
+      queriesleft--;
+      printf("%d ",readyqueue[readycount].processid);
+	}
+	else if(readyqueue[readycount].remainingtime>timequantum){
+		time += timequantum;
+		readyqueue[readycount].remainingtime -= timequantum;
+		printf("%d",readyqueue[readycount].processid);
+		cpustate=0;
+		
+	}
+	if(readycount==n-1){
+	readycount=0;
+	
+	
+}
+else if(readyqueue[readycount+1].arrivaltime<time){
+	readycount++;
+	
+	
+}
+else if(cpustate==1 && readyqueue[readycount+1].arrivaltime>time && readyqueue[readycount-1].remainingtime==0){
+	time=readyqueue[readycount+1].arrivaltime;
+	readycount++;
+	
+}
+else{
+	readycount=0;
+}
+}
 }
 
 ////
 
 ///
 void putting_data_of_both_queues(){
-	int isc=0, ifc= 0, min, flag;
+	int studentiterator=0, facultyiterator= 0;
 	if( fc!=0  && sc!=0){
-		while(isc<sc && ifc<fc){
-			if(facultyqueue[ifc].arrivaltime == studentqueue[isc].arrivaltime){
-				readyqueue[readycount] = facultyqueue[ifc];
+		while( facultyiterator<fc && studentiterator<sc ){
+			if(facultyqueue[facultyiterator].arrivaltime == studentqueue[studentiterator].arrivaltime){
+				readyqueue[readycount] = facultyqueue[facultyiterator];
 				readycount++;
-				ifc++;
-				readyqueue[readycount]= studentqueue[isc];
+				facultyiterator++;
+//				readyqueue[readycount]= studentqueue[studentiterator];
+//				readycount++;
+//				studentiterator++;
+			}
+			else if(facultyqueue[facultyiterator].arrivaltime > studentqueue[studentiterator].arrivaltime){
+				readyqueue[readycount]= studentqueue[studentiterator];
 				readycount++;
-				isc++;
+				studentiterator++;
 			}
-			else if(facultyqueue[ifc].arrivaltime < studentqueue[isc].arrivaltime){
-				readyqueue[readycount]= facultyqueue[ifc];
+			
+			else if(facultyqueue[facultyiterator].arrivaltime < studentqueue[studentiterator].arrivaltime){
+				readyqueue[readycount]= facultyqueue[facultyiterator];
 				readycount++;
-				ifc++;
+				facultyiterator++;
 			}
-			else if(facultyqueue[ifc].arrivaltime > studentqueue[isc].arrivaltime){
-				readyqueue[readycount]= studentqueue[isc];
-				readycount++;
-				isc++;
-			}
-			else;
+			
+			
 		}
-		if(readycount != (fc+sc)){
-			if(fc!=ifc){
-				while(ifc!=fc){
-					readyqueue[readycount]= facultyqueue[ifc];
-					readycount++;
-					ifc++;
-				}
-			}
-			else if(sc!=isc){
-				while(isc!=sc){
-					readyqueue[readycount]= studentqueue[isc];
-					readycount++;
-					isc++;
-				}
-			}
-		}
-	}
-	else if(fc==0){
-		while(isc!=sc){
-			readyqueue[readycount]= studentqueue[isc];
-			readycount++;
-			isc++;
-		}
-	}
-	else if(sc==0){
-		while(ifc!=fc){
-		readyqueue[readycount]= facultyqueue[ifc];
-			readycount++;
-			ifc++;
-		}
-	}
-	else {
-		printf("\nPlease select as per instruction...\n");
-	}}
+		if(fc==facultyiterator)
+    {
+      while(studentiterator!=sc)
+      {
+        readyqueue[readycount]=studentqueue[studentiterator];
+        studentiterator++;
+        readycount++;
+      }
+    }
+    else if(sc==studentiterator)
+    {
+      while(facultyiterator!=fc)
+      {
+        readyqueue[readycount]=facultyqueue[facultyiterator];
+        facultyiterator++;
+        readycount++;
+      }
+    }
+  }
+
+  else if(fc==0)
+  {
+    while(studentiterator!=sc)
+    {
+      readyqueue[readycount]=studentqueue[studentiterator];
+      studentiterator++;
+      readycount++;
+    }
+  }
+  else if(sc==0)
+  {
+    while(facultyiterator!=fc)
+    {
+      readyqueue[readycount]=facultyqueue[facultyiterator];
+      facultyiterator++;
+      readycount++;
+    }
+  }
+}
+
+
 void allinputhere(){
 	
-	int querytype,  i, t;
-	printf("Enter total no of queries: "); scanf("%d", &n);
-	if(n==0) { printf("\n No queries has be accepeted\n"); }
-	else{
-		printf("\nEnter timequantum for each Process: "); scanf("%d", &timequantum);
+	int querytype,  i;
+	printf("Enter total no of queries: ");
+	scanf("%d", &n);
+
 		printf("\nEnter 1 for faculty and 2 for student\n");
 		for(i=0; i<n; i++){
-			printf("\n:Press 1(faculty) or 2(student) "); scanf("%d", &querytype);
+			printf("\n:Press 1(faculty) or 2(student) "); 
+			scanf("%d", &querytype);
 			if(querytype==1){
-				printf("Query Id: "); scanf("%d", &facultyqueue[fc].processid);
-				printf("Arrival Time: "); scanf("%d", &t);
-				if(t<1000 || t>1200){
-					printf("\n Entered wrong slot time. Please enter again.");
-					allinputhere();
+			
+				facultyqueue[fc].processid=i;
+				printf("Arrival Time: "); scanf("%d", &facultyqueue[fc].arrivaltime);
+				if(facultyqueue[fc].arrivaltime<1000 || facultyqueue[fc].arrivaltime>1200){
+					printf("\n Entered wrong slot time.Enter again ");
+					i--;//to go at same iteration
+					continue;
 				}
-				else{facultyqueue[fc].arrivaltime= t-1000;}
-				printf("Burst time: "); scanf("%d", &facultyqueue[fc].bursttime);	 facultyqueue[fc].remainingtime= facultyqueue[fc].bursttime; 
+				//else{facultyqueue[fc].arrivaltime= t-1000;}
+				printf("Burst time: "); scanf("%d", &facultyqueue[fc].bursttime);	 
+				facultyqueue[fc].remainingtime= facultyqueue[fc].bursttime; 
 				fc++;
-			} else{
-				printf("Query Id: "); scanf("%d", &studentqueue[sc].processid);
-				printf("Arrival Time: "); scanf("%d", &t); 
-				if(t<1000 || t>1200){
-					printf("\nEntered wrong slot time. Please enter again.\n");
-					allinputhere();
+			} 
+			else if(querytype==2){
+				//printf("Query Id: "); scanf("%d", &studentqueue[sc].processid);
+				studentqueue[sc].processid=i;
+				printf("Arrival Time: "); scanf("%d", &studentqueue[sc].arrivaltime); 
+				if(studentqueue[sc].arrivaltime<1000 || studentqueue[sc].arrivaltime>1200){
+					printf("\nEntered wrong slot time\n");
+					i--;
+					continue;
 				}
-				else {studentqueue[sc].arrivaltime= t-1000; }
-				printf("Burst time: "); scanf("%d", &studentqueue[sc].bursttime);	 studentqueue[sc].remainingtime= studentqueue[sc].bursttime;
+				//else {studentqueue[sc].arrivaltime= t-1000; }
+				printf("Burst time: "); scanf("%d", &studentqueue[sc].bursttime);
+				 studentqueue[sc].remainingtime= studentqueue[sc].bursttime;
 				sc++;
 			}
+			else{
+				printf("Please choose only from 1 and 2");
+				i--;
+				
+			}
 		}
-	}}
-	void printinginformation(){
-	
-	int i=0, total=0, sum=0; 
-	double avg;
-	printf("\nHere is the summary....\n");
-	printf("\nQuery ID\tArrival Time\tRessolving Time\tCompletion Time\tTurn Around Time\tWaiting Time");
-	for(i; i<readycount; i++){
-		printf("\n%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t\t%d",
-		readyqueue[i].processid, (readyqueue[i].arrivaltime+1000), readyqueue[i].bursttime, (readyqueue[i].completiontime+1000), (readyqueue[i].completiontime-readyqueue[i].arrivaltime), ((readyqueue[i].completiontime-readyqueue[i].arrivaltime)- readyqueue[i].bursttime));
-		total= readyqueue[i].completiontime;
-		sum+= (readyqueue[i].completiontime-readyqueue[i].arrivaltime);}
-			avg = sum/readycount;
-	printf("\n\nTotal time Spent for all queries: %d", total);
-	printf("\nAverage query time taken is : %f", avg);//lf
-	printf("\nAll queries have been solved");}
+	}
 
 
 
@@ -198,7 +199,7 @@ void main(){
 	puts("*** Faculty query will be given more preference. So please have patience till your turn comes...");
 	puts("*** Time units are in minutes.\n\n\n");
 	
-	/////////////////////////////taking input
+
 	allinputhere();
 	
 	//combining both queues
@@ -206,13 +207,18 @@ void main(){
 	//implementation of round robin
 	roundrobin_implementation();
 	//summary
-	printinginformation();
+	
+	int z;
+  printf("\nProcess id\t\tBurst Time\t\tArrival Time\t\tWaiting Time\t\tTurnaround Time\n");
+  for(z=0;z<n;z++)
+  {
+    printf("\n%d\t\t\t%d\t\t\t%d\t\t\t%d\t\t\t%d",readyqueue[z].processid,readyqueue[z].bursttime,readyqueue[z].arrivaltime,readyqueue[z].waitingtime,readyqueue[z].turnaroundtime);
+  }
+  printf("\n\nTime Spent :%d\n\n", (time-readyqueue[readycount].arrivaltime));
+  printf("\nAvg Waiting Time:%d\n\n",(totalwaiting/n));
+  printf("\nAvg Turnaround Time:%d\n\n",(totalturnaroundtime/n));
+	puts("\nThanks, for your patience...");
 	
 	
 	
 }
-
-
-
-
-
